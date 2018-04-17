@@ -41,4 +41,5 @@
 
 ----------
 - app体验下载：链接：https://pan.baidu.com/s/1K5sodkFXg4LR0PYesRlEkw 密码：n3ve
+- 使用说明：app仅仅作为一个爬虫存在，需要自己配置资源网址：例如：biquge.com, biquge.com.cw,www.qu.la等
 - 联系我 qq群：498092801
