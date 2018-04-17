@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta http-equiv="Access-Control-Allow-Origin" content="*">
+		<meta http-equiv="content-security-policy">
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">书籍详情</h1>
+		</header>
+		<div class="mui-card" style="top:40px;">
+			<div class="mui-card-header mui-card-media" style="height: auto;">
+				<img id="bookImg" class="mui-media-object mui-pull-left" src="images/load.jpg" style="width:80px;height: 100px;">
+				<div class="mui-media-object mui-pull-inner" style="margin-left: 100px;">
+					<p id="bookName" style="color: #000000; font-size: 18px;font-weight:Bold;">正在加载</p>
+					<p id="bookAuthor"> 作者：</p>
+					<p id="bookTime"> 最近更新：</p>
+				</div>
+				<div class="mui-media-object mui-pull-inner" style="margin-left: 100px;">
+					<button id="insertBook" type="button" class="mui-btn mui-btn-danger" onclick="insertMyBook()">+ 加入追更</button>
+					<button id="startReadBook" type="button" class="mui-btn mui-btn-danger" onclick="startMyBook()">开始阅读</button>
+				</div>
+			</div>
+			<div class="mui-card-content">
+				<div class="mui-card-content-inner">
+					<p>内容介绍：</p>
+					<p id="bookContent" style="color: #333;"></p>
+				</div>
+			</div>
+			<script src="js/mui.min.js"></script>
+			<script type="text/javascript">
+				mui.init()
+				var novelId;
+				var novelUrl = "";
+
+				var rsvData; //返回数据
+				mui.plusReady(function() {
+					var self = plus.webview.currentWebview();
+					var nId = self.nid;
+					var data = self.data;
+					novelUrl = encodeURI(data[nId].NovelUrl);
+					loadContent();
+				});
+
+				//加载数据
+				function loadContent() {
+					var setUrl = localStorage.getItem("ConfigUrl");
+					var setUrlStr = "&setUrl=" + setUrl;
+					url = 'http://120.78.209.96:1500/Service/?novelid=0&chapterId=0&state=6'+setUrlStr;
+					mui.ajax(url, {
+						dataType: 'json',
+						type: 'post',
+						data: {
+							category: novelUrl
+						},
+						timeout: 10000,
+						success: function(rsp) {
+							console.log(rsp);
+							rsvData = rsp;
+							IsHaveBook(rsp);
+
+							var name = document.getElementById("bookName");
+							var author = document.getElementById("bookAuthor");
+							var mtime = document.getElementById("bookTime");
+							var mcontent = document.getElementById("bookContent");
+							var bImg = document.getElementById("bookImg");
+
+							name.innerHTML = rsp.NovelName;
+							author.innerHTML = "作者：" + rsp.Author;
+							mtime.innerHTML = "最近更新：" + rsp.LastTime;
+							mcontent.innerHTML = rsp.Introduce;
+							bImg.setAttribute("src", rsp.PicUrl);
+
+							novelId = rsp.NovelId;
+						},
+						error: function() {
+							console.log("获取失败");
+						}
+					});
+				}
+
+				//判断该书是否已经添加到追更
+				function IsHaveBook(rspData) {
+					var data = localStorage.getItem("MyBook");
+					if(data != null) {
+						var listdata = data.split("_");
+
+						for(i = 0; i < listdata.length; i++) {
+							if(listdata[i] == rspData.NovelId) {
+								var insertBook = document.getElementById("insertBook");
+								insertBook.className = "mui-btn";
+								insertBook.disabled = true;
+								insertBook.innerText = "-已加入追更"
+								break;
+							}
+						}
+					}
+				}
+
+				//加入追更
+				function insertMyBook() {
+					appendData();
+				}
+
+				//开始阅读
+				function startMyBook() {
+					jumpreadText();
+				}
+
+				//跳转到阅读界面
+				function jumpreadText() {
+					console.log(novelId);
+					var webview = mui.openWindow({
+						url: 'reader/readerTxt.html',
+						extras: {
+							name: novelId //扩展参数
+						}
+					});
+				}
+
+				//添加一条数据
+				function appendData(data) {
+					var data = localStorage.getItem("MyBook");
+					var lastread = localStorage.getItem("MyBookLastRead");
+					if(data != null) {
+						data += "_" + rsvData.NovelId;
+						lastread += "_1";
+					} else {
+						data = rsvData.NovelId;
+						lastread = "1";
+					}
+					localStorage.setItem("MyBook", data);
+					localStorage.setItem("MyBookLastRead", lastread);
+					var insertBook = document.getElementById("insertBook");
+					insertBook.className = "mui-btn";
+					insertBook.disabled = true;
+					insertBook.innerText = "-已加入追更"
+					console.log(data + "：" + lastread);
+					mui.toast("添加成功");
+					refrushMainView();
+				}
+				//刷新主页面
+				function refrushMainView() {
+					//获取要触发的页面
+					detailPage = plus.webview.getWebviewById('pullFirst.html');
+					//触发详情页面的newsId事件
+					mui.fire(detailPage, 'addBook', {
+						
+					});
+				}
+			</script>
+	</body>
+
+</html>

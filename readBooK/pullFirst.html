@@ -1,0 +1,254 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Access-Control-Allow-Origin" content="*">
+		<meta http-equiv="content-security-policy">
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<div id="refreshContainer" class="mui-content mui-scroll-wrapper">
+			<!--下拉刷新容器-->
+			<div class="mui-scroll" id="pullrefresh">
+				<ul class="mui-table-view" id="ulSwitch">
+					<li class="mui-table-view-cell" v-for="item in items">
+						<div class="mui-slider-right mui-disabled">
+							<a class="mui-btn mui-btn-red" :data="item.NovelId" onclick="delBook(this)">删除</a>
+						</div>
+						<div class="mui-slider-handle">
+							<a onclick="jumpreadText(this)" :data="item.NovelId">
+								<img class="mui-media-object mui-pull-left" :src="item.Cover">
+								<div class="mui-media-body">
+									{{item.Title}}
+									<p class='mui-ellipsis' id="smjfTitle">{{item.LastTime}}：{{item.LastChapterName}}</p>
+								</div>
+							</a>
+						</div>
+						<span class="mui-badge mui-badge-danger" v-if='item.NewCount!=0'>{{item.NewCount}}</span>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script src="js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+		<script>
+			var mybooklist = ""; //更新的书id串
+			mui.init({
+				pullRefresh: {
+					container: '#refreshContainer',
+					down: {
+						callback: pulldownRefresh,
+						auto: true, //可选,默认false.首次加载自动下拉刷新一次
+					},
+				},
+
+			});
+
+			var list = new Vue({
+				el: '#refreshContainer',
+				data: {
+					items: [] //列表信息流数据
+				}
+			});
+
+			loadfirst();
+
+			//初始化加载本地数据。。。
+			function loadfirst() {
+				loadInit();
+			}
+
+			/**pullrefresh
+			 * 下拉刷新具体业务实现
+			 */
+			function pulldownRefresh() {
+				if(window.plus && plus.networkinfo.getCurrentType() === plus.networkinfo.CONNECTION_NONE) {
+					plus.nativeUI.toast('似乎已断开与互联网的连接', {
+						verticalAlign: 'top'
+					});
+					return;
+				}
+				var data = {
+					column: "NovelId,LastChapterName,LastTime" //需要的字段名
+				}
+
+				mybooklist = localStorage.getItem("MyBook");
+				mylastreadlist = localStorage.getItem("MyBookLastRead");
+				console.log(mybooklist);
+				var pam = "?novelid=" + mybooklist + "&lastRead=" + mylastreadlist + "&chapterId=0&state=7";
+				var setUrl = localStorage.getItem("ConfigUrl");
+				if(setUrl==null)
+				{
+					mui.toast("请先在设置中配置资源网址");
+					mui('#refreshContainer').pullRefresh().endPulldownToRefresh();
+					return;
+				}
+				if(setUrl=="")
+				{
+					mui.toast("请先在设置中配置资源网址");
+					mui('#refreshContainer').pullRefresh().endPulldownToRefresh();
+					return;
+				}
+				var setUrlStr = "&setUrl=" + setUrl;
+				console.log(setUrlStr);
+				var url="http://120.78.209.96:1500/Service/" + pam + setUrlStr;
+				mui.getJSON(url, data, function(rsp) {
+					console.log(rsp);
+					list.items = convert(rsp);
+					console.log(rsp.length);
+					mui('#refreshContainer').pullRefresh().endPulldownToRefresh();
+				});
+				//SetNullSpanHide();
+			}
+
+			/**
+			 * 1、将服务端返回数据，转换成前端需要的格式
+			 * 2、若服务端返回格式和前端所需格式相同，则不需要改功能
+			 * 
+			 * @param {Array} items 
+			 */
+			function convert(items) {
+				var newItems = [];
+				items.forEach(function(item) {
+					newItems.push({
+						NovelId: item.NovelId,
+						LastChapterName: item.LastChapterName,
+						LastTime: item.LastTime,
+						Title: item.NovelName,
+						Cover: item.PicUrl,
+						NewCount: item.NewCount
+					});
+				});
+				return newItems;
+
+			}
+
+			//刷新为0的章节隐藏数量
+			function SetNullSpanHide() {
+				var aSpan = document.querySelector("#pullrefresh span");
+				var ullist = document.getElementsByTagName("span");
+				for(i = 0; i < ullist.length; i++) {
+					var count = Number(ullist[i].innerHTML);
+					if(count == 0) {
+						ullist[i].style.display = "none";
+					} else {
+						ullist[i].style.display = "block";
+					}
+				}
+			}
+
+			//跳转页面
+			function jumpreadText(li) {
+				var webview = mui.openWindow({
+					url: 'reader/readerTxt.html',
+					extras: {
+						name: li.getAttribute('data') //扩展参数
+					}
+				});
+			}
+
+			//删除本地书籍
+			function delBook(li) {
+				var id = li.getAttribute('data');
+				mui.confirm('确认删除该条记录？', '停止追更', btnArray, function(e) {
+					if(e.index == 0) {
+						console.log("取消" + id);
+					} else {
+						li.parentNode.parentNode.remove();
+						var readtext = localStorage.getItem("MyBook");
+						var lastReadText = localStorage.getItem("MyBookLastRead");
+						if(readtext != null) {
+							var listdata = readtext.split("_");
+							var readdata = lastReadText.split("_");
+							var newlist = "";
+							var newreadlist = "";
+							for(i = 0; i < listdata.length; i++) {
+								if(listdata[i] != id) {
+									if(newlist != "")
+										newlist += "_" + listdata[i];
+									else
+										newlist += listdata[i];
+
+									if(newreadlist != "")
+										newreadlist += "_" + readdata[i];
+									else
+										newreadlist += readdata[i];
+								}
+							}
+							console.log("newlist:" + newlist);
+							console.log("newreadlist:" + newreadlist);
+							localStorage.setItem("MyBook", newlist);
+							localStorage.setItem("MyBookLastRead", newreadlist);
+						}
+					}
+				});
+				var btnArray = ['确认', '取消'];
+			}
+
+			localStorage = window.localStorage;
+
+			//加载初始化列表
+			function loadInit() {
+				var readtext = localStorage.getItem("MyBook");
+				console.log(readtext);
+				if(readtext == null) {
+					var jsonValue = "2_3";
+					localStorage.setItem("MyBook", jsonValue);
+
+				}
+				var lastReadText = localStorage.getItem("MyBookLastRead");
+				console.log(lastReadText);
+				if(lastReadText == null) {
+					var LastReadValue = "1_1";
+					localStorage.setItem("MyBookLastRead", LastReadValue);
+				}
+			}
+
+			//监听阅读界面返回刷新事件
+			window.addEventListener('refresh', function(e) { //执行刷新
+				if(mybooklist == "")
+					return;
+				var list = mybooklist.split('_');
+
+				var strCount = localStorage.getItem("LastReadCount");
+				console.log("LastReadCount" + strCount);
+				var nId = strCount.split('_')[0];
+				var nCount = strCount.split('_')[1];
+
+				var index;
+				for(i = 0; i < list.length; i++) {
+					if(list[i] == nId)
+						index = i;
+				}
+
+				console.log("index" + index);
+				var aSpan = document.querySelector("#pullrefresh span");
+				var ullist = document.getElementsByTagName("span");
+				for(i = 0; i < ullist.length; i++) {
+					if(i == index) {
+						ullist[i].innerText = nCount;
+						console.log(ullist[i].innerText);
+						if(nCount == 0) {
+							ullist[i].style.display = "none";
+						} else {
+							ullist[i].style.display = "block";
+						}
+					}
+
+				}
+			});
+			
+			//监听添加一本书后自动刷新
+			window.addEventListener('addBook', function(e) { //执行刷新
+				pulldownRefresh();
+			});
+		</script>
+	</body>
+
+</html>

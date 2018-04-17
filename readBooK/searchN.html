@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>searchN</title>
+		<meta http-equiv="Access-Control-Allow-Origin" content="*">
+		<meta http-equiv="content-security-policy">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<div class="mui-input-row mui-search">
+			<input id="searchInput" type="search" class="mui-input-clear" onkeyup="enterSearch(event)" placeholder="请输入小说名称或作者">
+		</div>
+		<div class="mui-content-padded">
+			<a>热门搜索：</a>
+		</div>
+		<div id="hotbooks" class="mui-content-padded">
+
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			var text = document.querySelector('#searchInput');
+			mui.plusReady(function loadContent() {
+				var setUrl = localStorage.getItem("ConfigUrl");
+				var setUrlStr = "&setUrl=" + setUrl;
+				console.log(setUrlStr);
+				mui.ajax('http://120.78.209.96:1500/Service/?novelid=0&chapterId=0&state=9'+setUrlStr, {
+					data: 'json',
+					dataType: 'get',
+					timeout: 100000,
+					success: function(data) {
+						console.log(data);
+						if(data == null)
+							return;
+
+						var bookNames = data.split(",");
+						var title = document.getElementById("hotbooks");
+						var content = "";
+						for(i = 0; i < bookNames.length; i++) {
+							content += "<span class=\"mui-badge mui-badge-danger\" onclick=\"selectbook('" + bookNames[i] + "')\">" + bookNames[i] + "</span> ";
+						}
+						title.innerHTML = content;
+					},
+					error: function() {
+						console.log("error");
+					}
+				});
+			});
+
+			//选择热门
+			function selectbook(name) {
+				var setUrl = localStorage.getItem("ConfigUrl");
+				if(setUrl == null) {
+					mui.toast("请先在设置中配置资源网址");
+					return;
+				}
+				if(setUrl == "") {
+					mui.toast("请先在设置中配置资源网址");
+					return;
+				}
+				mui.openWindow({
+					url: 'searchList.html',
+					extras: {
+						keyword: name
+					}
+				})
+			}
+
+			//搜索
+			function enterSearch(e) {
+				if(e.keyCode == 13) {
+					var setUrl = localStorage.getItem("ConfigUrl");
+					if(setUrl == null) {
+						mui.toast("请先在设置中配置资源网址");
+						return;
+					}
+					if(setUrl == "") {
+						mui.toast("请先在设置中配置资源网址");
+						return;
+					}
+					var name = text.value;
+
+					if(name == '') {
+						plus.nativeUI.toast('搜索关键字不能为空！');
+						return;
+					}
+
+					mui.openWindow({
+						url: 'searchList.html',
+						extras: {
+							keyword: name
+						}
+					})
+				}
+			}
+		</script>
+	</body>
+
+</html>

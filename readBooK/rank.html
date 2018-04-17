@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta http-equiv="Access-Control-Allow-Origin" content="*">
+		<meta http-equiv="content-security-policy">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title" id="headName">排行榜</h1>
+		</header>
+		<div class="mui-content" style="margin-top:-15px;width: 100%;">
+			<div class="mui-card" style="left: -10px; width: 100%;">
+				<ul id="ui_SearchNovel" class="mui-table-view ref">
+				</ul>
+			</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script type="text/javascript">
+			mui.init();
+
+			var bookData;
+
+			mui.plusReady(function() {
+				var self = plus.webview.currentWebview();
+				var rank = self.keyword;
+				
+			
+				loadheadName(rank);
+				loadList(rank);
+			});
+			
+			function loadheadName(rank){
+				var headTitle="排行榜";
+				if(rank==1)
+					headTitle="玄幻·奇幻小说推荐排行榜";
+				if(rank==2)
+					headTitle="修真·仙侠小说推荐排行榜";
+				if(rank==3)
+					headTitle="都市·青春小说推荐排行榜";
+				if(rank==4)
+					headTitle="历史·穿越小说推荐排行榜";
+				if(rank==5)
+					headTitle="网游·竞技小说推荐排行榜";
+				if(rank==6)
+					headTitle="科幻·灵异小说推荐排行榜";
+				if(rank==7)
+					headTitle="完本小说推荐排行榜";
+				if(rank==8)
+					headTitle="全部小说推荐排行榜";
+					
+				var text = document.querySelector('#headName');
+				text.innerText=headTitle;
+			}
+
+			/*请求列表数据*/
+			function loadList(rank) {
+				var setUrl = localStorage.getItem("ConfigUrl");
+				var setUrlStr = "&setUrl=" + setUrl;
+				url = 'http://120.78.209.96:1500/Service/?novelid=0&chapterId=0&state=8&rank='+rank+setUrlStr;
+				
+				mui.ajax(url, {
+					dataType: 'json',
+					type: 'get',
+					timeout: 10000,
+					success: function(data) {
+						if(data==null)
+							return;
+						if(data=="")
+							return;
+						var count = Object.keys(data).length;
+						var dataContent = "<li class='mui-table-view-divider'>排行榜共 <a> " + count + " </a>条相关数据</li> "
+						console.log(count);
+						bookData = data;
+						for(i = 0; i < count; i++) {
+							//var imageUrl = data[i].PicUrl;
+							var NovelName = Number(i+1)+"."+ data[i].Name;
+							//var Author = data[i].Author;
+							var nUrl = encodeURI(data[i].NovelUrl);
+
+							dataContent += "<li class='mui-table-view-cell '><a onclick='jumpreadText(" + i + ")'><div class='mui-media-body'>" + NovelName + "</div></a></li>";
+						}
+						var novelContent = document.getElementById("ui_SearchNovel");
+						novelContent.innerHTML = dataContent;
+					},
+					error: function() {
+						console.log("获取失败");
+					}
+				});
+			}
+
+			//跳转页面
+			function jumpreadText(id) {
+				var webview = mui.openWindow({
+					url: 'BookCard.html',
+					extras: {
+						data: bookData,
+						nid: id //扩展参数
+					}
+				});
+			}
+		</script>
+
+	</body>
+
+</html>

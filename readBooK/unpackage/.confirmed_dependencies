@@ -1,0 +1,95 @@
+{
+  "index.html": {
+    "resources": [
+      "pullFirst.html"
+    ],
+    "refer": [
+      "pullFirst.html",
+      "collection.html",
+      "setting.html",
+      "search.html",
+      "SearchBook.html",
+      "searchN.html"
+    ]
+  },
+  "pullFirst.html": {
+    "refer": [
+      "ReadText.html",
+      "read/reading.html",
+      "reader/readerTxt.html"
+    ]
+  },
+  "read/reading.html": {
+    "refer": [
+      "index.html"
+    ]
+  },
+  "SearchBook.html": {
+    "refer": [
+      "SearchBook.html"
+    ]
+  },
+  "searchN.html": {
+    "refer": [
+      "searchN.html",
+      "searchList.html"
+    ],
+    "resources": [
+      "js/mui.js"
+    ]
+  },
+  "collection.html": {
+    "refer": [
+      "searchList.html",
+      "rank.html"
+    ]
+  },
+  "searchList.html": {
+    "refer": [
+      "BookCard.html"
+    ]
+  },
+  "BookCard.html": {
+    "refer": [
+      "reader/readerTxt.html"
+    ]
+  },
+  "rank.html": {
+    "refer": [
+      "BookCard.html"
+    ]
+  },
+  "statement.html": {
+    "resources": [
+      "/css/app.css"
+    ],
+    "refer": [
+      "SetWebSite.html"
+    ]
+  },
+  "setting.html": {
+    "refer": [
+      "statement.html",
+      "MessageList.html",
+      "SetWebSite.html"
+    ]
+  },
+  "MessageList.html": {
+    "resources": [
+      "/css/app.css"
+    ],
+    "refer": [
+      "MessageCard.html"
+    ]
+  },
+  "MessageCard.html": {
+    "resources": [
+      "/css/app.css"
+    ]
+  },
+  "SetWebSite.html": {
+    "refer": [
+      "statement.html"
+    ]
+  }
+}

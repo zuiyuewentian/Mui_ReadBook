@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" type="text/css" href="/css/app.css" />
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">新消息通知</h1>
+		</header>
+		<div class="mui-content" style="margin-top:-15px;width: 100%;">
+			<div class="mui-card" style="left: -10px; width: 100%;">
+				<ul id="ui_SearchNovel" class="mui-table-view ref">
+				</ul>
+			</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script>
+			mui.init({
+				beforeback: function() {　　　　 //获得父页面的webview
+					var list = plus.webview.currentWebview().opener();　　　　 //触发父页面的自定义事件(refresh),从而进行刷新
+					mui.fire(list, 'refresh');
+					//返回true,继续页面关闭逻辑
+					return true;
+				}
+			});
+
+			var messageData;
+			mui.plusReady(function() {
+				var self = plus.webview.currentWebview();
+				var data = self.data;
+				loadList(data);
+			});
+
+			/*请求列表数据*/
+			function loadList(data) {
+				var count = Object.keys(data).length;
+				var dataContent = "<li class='mui-table-view-divider'>（ 共有 <a> " + count + " </a>条新消息）</li> "
+				console.log(count);
+				messageData = data;
+				for(i = 0; i < count; i++) {
+					var Id = data[i].Id;
+					var title = data[i].Title;
+					var content = data[i].Content;
+					dataContent += "<li class='mui-table-view-cell '><a class='mui-navigate-right' onclick='jumpMessage(" + i + ")'><div class='mui-media-body'>" + Number(i + 1) + "." + title;
+				}
+				var novelContent = document.getElementById("ui_SearchNovel");
+				novelContent.innerHTML = dataContent;
+			}
+
+			//跳转消息详情页面
+			function jumpMessage(i) {
+				var webview = mui.openWindow({
+					url: 'MessageCard.html',
+					extras: {
+						mId: messageData[i].Id,
+						mTitle: messageData[i].Title,
+						mContent: messageData[i].Content,
+					}
+				});
+			}
+			
+
+		</script>
+	</body>
+
+</html>

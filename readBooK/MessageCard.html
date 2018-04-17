@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" type="text/css" href="/css/app.css" />
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 id="headerTitle" class="mui-title">新消息</h1>
+		</header>
+		<div class="mui-content">
+			<div class="mui-card">
+				<div class="mui-card-content">
+					<div id="contentCard" class="mui-card-content-inner">
+
+					</div>
+				</div>
+			</div>
+		</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script>
+			mui.init();
+			mui.plusReady(function() {
+				var self = plus.webview.currentWebview();
+				var mid = self.mId;
+				var mtitle = self.mTitle;
+				var mcontent = self.mContent;
+
+				var title = document.getElementById("headerTitle");
+				title.innerText = mtitle;
+				var content = document.getElementById("contentCard");
+				content.innerHTML = mcontent;
+				console.log(content);
+
+				var readmessageStr = localStorage.getItem("readMessage");
+				if(readmessageStr == null) {
+					localStorage.setItem("readMessage", mid);
+				} else if(readmessageStr == "") {
+					localStorage.setItem("readMessage", mid);
+				} else {
+					var list = readmessageStr.split('_');
+					var hasValue = false;
+					for(i = 0; i < list.length; i++) {
+						if(list[i] == mid) {
+							hasValue = true;
+							break;
+						}
+					}
+					if(!hasValue) {
+						localStorage.setItem("readMessage", readmessageStr + "_" + mid);
+					}
+				}
+			});
+		</script>
+	</body>
+
+</html>

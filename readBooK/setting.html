@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta http-equiv="Access-Control-Allow-Origin" content="*">
+		<meta http-equiv="content-security-policy">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<style>
+			html,
+			body {
+				background-color: #efeff4;
+			}
+			
+			.mui-views,
+			.mui-view,
+			.mui-pages,
+			.mui-page,
+			.mui-page-content {
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: 0;
+				bottom: 0;
+				width: 100%;
+				height: 100%;
+				background-color: #efeff4;
+			}
+			
+			.mui-pages {
+				top: 46px;
+				height: auto;
+			}
+			
+			.mui-scroll-wrapper,
+			.mui-scroll {
+				background-color: #efeff4;
+			}
+			
+			.mui-page.mui-transitioning {
+				-webkit-transition: -webkit-transform 300ms ease;
+				transition: transform 300ms ease;
+			}
+			
+			.mui-page-left {
+				-webkit-transform: translate3d(0, 0, 0);
+				transform: translate3d(0, 0, 0);
+			}
+			
+			.mui-ios .mui-page-left {
+				-webkit-transform: translate3d(-20%, 0, 0);
+				transform: translate3d(-20%, 0, 0);
+			}
+			
+			.mui-navbar {
+				position: fixed;
+				right: 0;
+				left: 0;
+				z-index: 10;
+				height: 44px;
+				background-color: #f7f7f8;
+			}
+			
+			.mui-navbar .mui-bar {
+				position: absolute;
+				background: transparent;
+				text-align: center;
+			}
+			
+			.mui-android .mui-navbar-inner.mui-navbar-left {
+				opacity: 0;
+			}
+			
+			.mui-ios .mui-navbar-left .mui-left,
+			.mui-ios .mui-navbar-left .mui-center,
+			.mui-ios .mui-navbar-left .mui-right {
+				opacity: 0;
+			}
+			
+			.mui-navbar .mui-btn-nav {
+				-webkit-transition: none;
+				transition: none;
+				-webkit-transition-duration: .0s;
+				transition-duration: .0s;
+			}
+			
+			.mui-navbar .mui-bar .mui-title {
+				display: inline-block;
+				width: auto;
+			}
+			
+			.mui-page-shadow {
+				position: absolute;
+				right: 100%;
+				top: 0;
+				width: 16px;
+				height: 100%;
+				z-index: -1;
+				content: '';
+			}
+			
+			.mui-page-shadow {
+				background: -webkit-linear-gradient(left, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, .01) 50%, rgba(0, 0, 0, .2) 100%);
+				background: linear-gradient(to right, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, .01) 50%, rgba(0, 0, 0, .2) 100%);
+			}
+			
+			.mui-navbar-inner.mui-transitioning,
+			.mui-navbar-inner .mui-transitioning {
+				-webkit-transition: opacity 300ms ease, -webkit-transform 300ms ease;
+				transition: opacity 300ms ease, transform 300ms ease;
+			}
+			
+			.mui-page {
+				display: none;
+			}
+			
+			.mui-pages .mui-page {
+				display: block;
+			}
+			
+			.mui-page .mui-table-view:first-child {
+				margin-top: 15px;
+			}
+			
+			.mui-page .mui-table-view:last-child {
+				margin-bottom: 30px;
+			}
+			
+			.mui-table-view {
+				margin-top: 20px;
+			}
+			
+			.mui-table-view span.mui-pull-right {
+				color: #999;
+			}
+			
+			.mui-table-view-divider {
+				background-color: #efeff4;
+				font-size: 14px;
+			}
+			
+			.mui-table-view-divider:before,
+			.mui-table-view-divider:after {
+				height: 0;
+			}
+			
+			.head {
+				height: 40px;
+			}
+			
+			#head {
+				line-height: 40px;
+			}
+			
+			.head-img {
+				width: 40px;
+				height: 40px;
+			}
+			
+			#head-img1 {
+				position: absolute;
+				bottom: 10px;
+				right: 40px;
+				width: 40px;
+				height: 40px;
+			}
+			
+			.update {
+				font-style: normal;
+				color: #999999;
+				margin-right: -25px;
+				font-size: 15px
+			}
+			
+			.mui-fullscreen {
+				position: fixed;
+				z-index: 20;
+				background-color: #000;
+			}
+			
+			.mui-ios .mui-navbar .mui-bar .mui-title {
+				position: static;
+			}
+			/*问题反馈在setting页面单独的css*/
+			
+			#feedback .mui-popover {
+				position: fixed;
+			}
+			
+			#feedback .mui-table-view:last-child {
+				margin-bottom: 0px;
+			}
+			
+			#feedback .mui-table-view:first-child {
+				margin-top: 0px;
+			}
+			
+			.mui-plus.mui-plus-stream .mui-stream-hidden {
+				display: none !important;
+			}
+			/*问题反馈在setting页面单独的css==end*/
+		</style>
+	</head>
+
+	<body>
+		<div class="mui-content">
+			<ul class="mui-table-view mui-table-view-chevron">
+				<li class="mui-table-view-cell mui-media">
+					<a class="mui-navigate-right" href="#account">
+						<img class="mui-media-object mui-pull-left head-img" id="head-img" src="images/man.png">
+						<div class="mui-media-body">
+							未注册用户
+							<p class='mui-ellipsis'>暂不提供注册服务</p>
+						</div>
+					</a>
+				</li>
+			</ul>
+			<ul class="mui-table-view mui-table-view-chevron">
+				<li class="mui-table-view-cell">
+					<a href="#account" class="mui-navigate-right" onclick="jumpSetWebSite()">配置资源网址</a>
+				</li>
+			</ul>
+			<ul class="mui-table-view mui-table-view-chevron">
+				<li id="mList" class="mui-table-view-cell">
+					<a href="#account" class="mui-navigate-right" onclick="jumpMessage()">新消息通知
+						<span id="new_message" class="mui-badge mui-badge-danger" style="display: none;">1</span>
+					</a>
+				</li>
+				<li class="mui-table-view-cell">
+					<a href="#account" class="mui-navigate-right" onclick="jumpState()">软件申明
+					</a>
+				</li>
+				<li class="mui-table-view-cell">
+					<a href="mqqapi://card/show_pslcard?src_type=internal&version=1&uin=498092801&card_type=group&source=external" class="mui-navigate-right">联系我们 QQ：498092801
+					</a>
+				</li>
+			</ul>
+			<ul class="mui-table-view mui-table-view-chevron">
+				<li class="mui-table-view-cell">
+					<a href="#about" class="mui-navigate-right">关于闪读看书 <i class="mui-pull-right update">V1.3.5</i></a>
+				</li>
+			</ul>
+			<ul class="mui-table-view">
+				<li class="mui-table-view-cell" style="text-align: center;">
+					<a>退出登录</a>
+				</li>
+			</ul>
+		</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script>
+			mui.init();
+
+			var MessageData;
+			mui.plusReady(function() {
+				var self = plus.webview.currentWebview();
+				self.addEventListener('show', function() {
+					console.log('show');
+					loadNewMessage();
+				});
+			});
+
+			function loadNewMessage() {
+				mui.ajax('http://120.78.209.96:1500/Service/?novelid=0&chapterId=0&state=10', {
+					data: 'json',
+					dataType: 'get',
+					timeout: 100000,
+					success: function(data) {
+						MessageData = null;
+						var name = document.getElementById("new_message");
+						if(data == null) {
+							name.style.display = "none";
+							return;
+						} else if(data == "") {
+							name.style.display = "none";
+							localStorage.setItem("readMessage", "");
+						} else {
+							data = JSON.parse(data);
+							MessageData = data;
+							var count = Object.keys(data).length;
+							console.log(count);
+							var readmessageStr = localStorage.getItem("readMessage");
+							console.log("readmessageStr" + readmessageStr);
+
+							var hasValue = 0;
+							if(readmessageStr == null) {
+								hasValue = 0;
+							} else if(readmessageStr == "") {
+								hasValue = 0;
+							} else {
+								var list = readmessageStr.split('_');
+
+								for(i = 0; i < list.length; i++) {
+									for(j = 0; j < count; j++) {
+										if(list[i] == data[j].Id) {
+											hasValue++;
+										}
+									}
+								}
+
+							}
+							count = count - hasValue;
+							console.log("c" + count);
+							if(count <= 0) {
+								name.style.display = "none";
+								return;
+							} else {
+								name.innerText = count;
+								name.style.display = "block";
+							}
+							
+						}
+
+					},
+					error: function() {
+						console.log('error');
+					}
+				});
+			}
+			
+			//网站配置
+			function jumpSetWebSite() {
+				var webview = mui.openWindow({
+					id: 'setting',
+					url: 'SetWebSite.html'
+				});
+			}
+			
+			//跳转消息列表页面
+			function jumpMessage() {
+				var webview = mui.openWindow({
+					id: 'setting',
+					url: 'MessageList.html',
+					extras: {
+						data: MessageData,
+					}
+				});
+			}
+			//跳转到申明
+			function jumpState() {
+				var webview = mui.openWindow({
+					url: 'statement.html',
+				});
+			}
+
+			//刷新消息
+			window.addEventListener('refresh', function(e) { //执行刷新
+				var name = document.getElementById("new_message");
+				if(MessageData == null) {
+					name.style.display = "none";
+				} else if(data == "") {
+					name.style.display = "none";
+					localStorage.setItem("readMessage", "");
+				} else {
+					var count = Object.keys(MessageData).length;
+					console.log(count);
+					var readmessageStr = localStorage.getItem("readMessage");
+					console.log("readmessageStr" + readmessageStr);
+
+					var hasValue = 0;
+					if(readmessageStr == null) {
+						hasValue = 0;
+					} else if(readmessageStr == "") {
+						hasValue = 0;
+					} else {
+						var list = readmessageStr.split('_');
+
+						for(i = 0; i < list.length; i++) {
+							for(j = 0; j < count; j++) {
+								if(list[i] == MessageData[j].Id) {
+									hasValue++;
+								}
+							}
+						}
+
+					}
+					count = count - hasValue;
+					console.log("c" + count);
+					if(count <= 0) {
+						name.style.display = "none";
+						return;
+					} else {
+						name.innerText = count;
+						name.style.display = "block";
+					}
+					
+				}
+			});
+		</script>
+	</body>
+
+</html>

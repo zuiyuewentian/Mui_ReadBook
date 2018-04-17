@@ -1,0 +1,380 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Reader</title>
+		<meta http-equiv="Access-Control-Allow-Origin" content="*">
+		<meta http-equiv="content-security-policy">
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		<style>
+			html,
+			body {
+				background-color: #efeff4;
+			}
+			
+			p {
+				text-indent: 22px;
+			}
+			
+			span.mui-icon {
+				font-size: 14px;
+				color: #007aff;
+				margin-left: -15px;
+				padding-right: 10px;
+			}
+			
+			.mui-off-canvas-left {
+				color: #fff;
+			}
+			
+			.title {
+				margin: 35px 15px 10px;
+			}
+			
+			.title+.content {
+				margin: 10px 15px 35px;
+				color: #bbb;
+				text-indent: 1em;
+				font-size: 14px;
+				line-height: 24px;
+			}
+			
+			input {
+				color: #000;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="offCanvasWrapper" class="mui-off-canvas-wrap mui-draggable">
+			<!--侧滑菜单部分-->
+			<aside id="offCanvasSide" class="mui-off-canvas-left">
+				<div id="offCanvasSideScroll" class="mui-scroll-wrapper">
+					<div id="m_chapterlist" class="mui-scroll">
+						<div id="novelName" class="title">小说名称
+
+						</div>
+						<ul id="ui_chapters" class="mui-table-view mui-table-view-chevron mui-table-view-inverted">
+						</ul>
+					</div>
+				</div>
+			</aside>
+			<!--主界面部分-->
+			<div class="mui-inner-wrap">
+				<header class="mui-bar mui-bar-nav">
+					<a href="#offCanvasSide" class="mui-icon mui-action-menu mui-icon-bars mui-pull-left"></a>
+					<a class="mui-action-back mui-btn mui-btn-link mui-pull-right">关闭</a>
+					<h1 id="novel_title" class="mui-title"></h1>
+
+				</header>
+				<div id="offCanvasContentScroll" class="mui-content mui-scroll-wrapper">
+					<div class="mui-scroll">
+						<div class="mui-content-padded" id="mui_content">
+						</div>
+						<div style="text-align: center;">
+							<input type="button" value="上一页" onclick="lastPage()" />
+							<input type="button" value="下一页" onclick="nextPage()" />
+							<br/>
+						</div>
+					</div>
+
+				</div>
+				<!-- off-canvas backdrop -->
+				<div class="mui-off-canvas-backdrop"></div>
+			</div>
+		</div>
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			mui.init({
+				beforeback: function() {　　　　 //获得父页面的webview
+					var list = plus.webview.currentWebview().opener();　　　　 //触发父页面的自定义事件(refresh),从而进行刷新
+					mui.fire(list, 'refresh');
+					//返回true,继续页面关闭逻辑
+					return true;
+				}
+			});
+
+			var sortType = 0; //倒序
+			var listData; //章节数据
+			var nName = ""; //小说名字
+
+			var pageIndex = 1;
+			var pageCount = 0;
+			var chapterData;
+
+			var mNovelId = 1;
+			mui.plusReady(function() {
+				var self = plus.webview.currentWebview();
+				var nId = self.name;
+				mNovelId = nId;
+				var cId = getLastReadChapterId(nId);
+				console.log(cId);
+				pageIndex = Number(cId) - 1;
+				console.log("cid:" + cId);
+				loadContent(nId, cId);
+				loadChapter(nId);
+			});
+
+			//获取最后阅读的章节
+			function getLastReadChapterId(nid) {
+				var readtext = localStorage.getItem("MyBook");
+				var lastReadText = localStorage.getItem("MyBookLastRead");
+				if(readtext != null) {
+					var listdata = readtext.split("_");
+					var readdata = lastReadText.split("_");
+					for(i = 0; i < listdata.length; i++) {
+						if(listdata[i] == nid) {
+							return readdata[i];
+						}
+					}
+					return 1;
+				} else {
+					return 1;
+				}
+			}
+
+			//设置最后阅读的章节
+			function SetLastReadChapterId() {
+				var readtext = localStorage.getItem("MyBook");
+				var lastReadText = localStorage.getItem("MyBookLastRead");
+				if(readtext != null) {
+					var listdata = readtext.split("_");
+					var readdata = lastReadText.split("_");
+					var newreadlist = "";
+					for(i = 0; i < listdata.length; i++) {
+						if(listdata[i] != mNovelId) {
+							if(newreadlist != "")
+								newreadlist += "_" + readdata[i];
+							else
+								newreadlist += readdata[i];
+						} else {
+							var pIndex = Number(pageIndex) + 1;
+							if(newreadlist != "")
+								newreadlist += "_" + pIndex;
+							else
+								newreadlist += pIndex;
+						}
+					}
+					localStorage.setItem("MyBookLastRead", newreadlist);
+				}
+				setLastReadCount();
+			}
+
+			//主界面和侧滑菜单界面均支持区域滚动；
+			mui('#offCanvasSideScroll').scroll();
+			mui('#offCanvasContentScroll').scroll();
+			//侧滑容器父节点
+			var offCanvasWrapper = mui('#offCanvasWrapper');
+			//主界面容器
+			var offCanvasInner = offCanvasWrapper[0].querySelector('.mui-inner-wrap');
+			//菜单容器
+			var offCanvasSide = document.getElementById("offCanvasSide");
+			if(!mui.os.android) {
+				//document.getElementById("move-togger").classList.remove('mui-hidden');
+				var spans = document.querySelectorAll('.android-only');
+				for(var i = 0, len = spans.length; i < len; i++) {
+					spans[i].style.display = "none";
+				}
+			}
+			//加载内容
+			function loadContent(novelId, chapterId) {
+				var mask = mui.createMask(); //遮罩层
+				var setUrl = localStorage.getItem("ConfigUrl");
+				var setUrlStr = "&setUrl=" + setUrl;
+				mui.ajax('http://120.78.209.96:1500/Service/?novelid=' + novelId + '&chapterId=' + chapterId + '&state=2' + setUrlStr, {
+					data: 'json',
+					dataType: 'get',
+					timeout: 100000,
+					success: function(data) {
+						data = JSON.parse(data);
+						var title = document.getElementById("novel_title");
+						var info = document.getElementById("mui_content");
+						var name = document.getElementById("novelName");
+						nName = data.NovelName;
+						var content = "<h4 style='text-align:center'>" + data.Name + "</h4><br/>" + data.Content.replace(/\r\n/g, "<br/>");
+						title.innerHTML = data.NovelName;
+						name.innerHTML = data.NovelName + "<a id='sortImg' style='float:right;font-size:30px;height:30px;margin-top:-5px;'><img src='../images/b_desc.png' width='32' height='32'></img></a>";
+						info.innerHTML = content;
+
+						mui("#novelName").on('tap', '#sortImg', function() {
+							//获取id
+							changeSort();
+						})
+						plus.nativeUI.closeWaiting();
+						mask.close(); //关闭遮罩层
+					},
+					beforeSend: function() {
+						plus.nativeUI.showWaiting("加载数据中");
+						mask.show(); //显示遮罩层
+					},
+					error: function() {
+						var info = document.getElementById("mui_content");
+						info.innerHTML = "获取章节错误！";
+					}
+				});
+			}
+
+			//章节排序
+			function changeSort() {
+
+				var data = listData;
+				var content = "";
+				var count = Object.keys(data).length;
+				chapterData = data;
+				pageCount = count;
+				var name = document.getElementById("novelName");
+				if(sortType == 0) {
+					name.innerHTML = nName + "<a id='sortImg'  style='float:right;font-size:30px;height:30px;margin-top:-5px;'><img src='../images/b_asc.png' width='32' height='32'></img></a>";
+					for(i = 0; i < count; i++) {
+						content += "<li class='mui-table-view-cell'><a id='chapter_" + i + "' class='mui-navigate-right' >" + data[i].Title + "</a></li>";
+					}
+					sortType = 1;
+					console.log(sortType);
+				} else {
+					name.innerHTML = nName + "<a id='sortImg'  style='float:right;font-size:30px;height:30px;margin-top:-5px;'><img src='../images/b_desc.png' width='32' height='32'></img></a>";
+					for(i = count - 1; i >= 0; i--) {
+						content += "<li class='mui-table-view-cell'><a id='chapter_" + i + "' class='mui-navigate-right' >" + data[i].Title + "</a></li>";
+					}
+					sortType = 0;
+					console.log(sortType);
+				}
+				var chapter = document.getElementById("ui_chapters");
+				chapter.innerHTML = content;
+				//监控事件
+				mui(".mui-table-view-cell").on('tap', '.mui-navigate-right', function() {
+					//获取id
+					var id = this.getAttribute("id");
+					var sid = id.split("_")[1];
+					pageIndex = sid;
+					loadContent(mNovelId, data[sid].Id);
+					offCanvasWrapper.offCanvas('close');
+					mui('#offCanvasContentScroll').scroll().scrollTo(0, 0);
+					SetLastReadChapterId();
+				})
+			}
+
+			//加载章节目录
+			function loadChapter(novelId) {
+				var setUrl = localStorage.getItem("ConfigUrl");
+				var setUrlStr = "&setUrl=" + setUrl;
+				mui.ajax('http://120.78.209.96:1500/Service/?novelid=' + novelId + '&chapterId=1&state=1' + setUrlStr, {
+					data: 'json',
+					dataType: 'get',
+					timeout: 100000,
+					success: function(data) {
+						data = JSON.parse(data);
+						listData = data;
+						var content = "";
+						var count = Object.keys(data).length;
+						chapterData = data;
+						pageCount = count;
+
+						for(i = count - 1; i >= 0; i--) {
+							content += "<li class='mui-table-view-cell'><a id='chapter_" + i + "' class='mui-navigate-right' >" + data[i].Title + "</a></li>";
+
+						}
+						var chapter = document.getElementById("ui_chapters");
+						chapter.innerHTML = content;
+						//监控事件
+						mui(".mui-table-view-cell").on('tap', '.mui-navigate-right', function() {
+							//获取id
+							var id = this.getAttribute("id");
+							var sid = id.split("_")[1];
+							pageIndex = sid;
+							loadContent(mNovelId, data[sid].Id);
+							offCanvasWrapper.offCanvas('close');
+							mui('#offCanvasContentScroll').scroll().scrollTo(0, 0);
+							SetLastReadChapterId();
+						})
+					},
+					error: function() {
+						console.log("获取失败");
+					}
+				});
+			}
+
+			//下一页
+			function nextPage() {
+				var nextPageIndex = 0;
+				nextPageIndex = Number(pageIndex) + 1;
+				if(nextPageIndex < pageCount) {
+					loadContent(mNovelId, chapterData[nextPageIndex].Id);
+					mui('#offCanvasContentScroll').scroll().scrollTo(0, 0);
+					pageIndex = nextPageIndex;
+					SetLastReadChapterId();
+				} else {
+					mui.toast("最后一页了");
+				}
+			}
+
+			//上一页
+			function lastPage() {
+				if(pageIndex - 1 >= 0) {
+					loadContent(mNovelId, chapterData[pageIndex - 1].Id);
+					mui('#offCanvasContentScroll').scroll().scrollTo(0, 0);
+					pageIndex--;
+					SetLastReadChapterId();
+				} else {
+					mui.toast("当前已是第一页");
+				}
+			}
+
+			//移动效果是否为整体移动
+			var moveTogether = false;
+			//侧滑容器的class列表，增加.mui-slide-in即可实现菜单移动、主界面不动的效果；
+			var classList = offCanvasWrapper[0].classList;
+			//变换侧滑动画移动效果；
+			mui('.mui-input-group').on('change', 'input', function() {
+				if(this.checked) {
+					offCanvasSide.classList.remove('mui-transitioning');
+					offCanvasSide.setAttribute('style', '');
+					classList.remove('mui-slide-in');
+					classList.remove('mui-scalable');
+					switch(this.value) {
+						case 'main-move':
+							if(moveTogether) {
+								//仅主内容滑动时，侧滑菜单在off-canvas-wrap内，和主界面并列
+								offCanvasWrapper[0].insertBefore(offCanvasSide, offCanvasWrapper[0].firstElementChild);
+							}
+							break;
+						case 'main-move-scalable':
+							if(moveTogether) {
+								//仅主内容滑动时，侧滑菜单在off-canvas-wrap内，和主界面并列
+								offCanvasWrapper[0].insertBefore(offCanvasSide, offCanvasWrapper[0].firstElementChild);
+							}
+							classList.add('mui-scalable');
+							break;
+						case 'menu-move':
+							classList.add('mui-slide-in');
+							break;
+						case 'all-move':
+							moveTogether = true;
+							//整体滑动时，侧滑菜单在inner-wrap内
+							offCanvasInner.insertBefore(offCanvasSide, offCanvasInner.firstElementChild);
+							break;
+					}
+					offCanvasWrapper.offCanvas().refresh();
+				}
+			});
+
+			//设置还有多少页未读
+			function setLastReadCount() {
+				console.log('setLastReadCount');
+				var pIndex = Number(pageIndex) + 1;
+				var count = pageCount - pIndex;
+				var content = mNovelId + "_" + count;
+				if(count > 100)
+					content = mNovelId + "_99+";
+				localStorage.setItem("LastReadCount", content);
+				console.log(content);
+			}
+		</script>
+	</body>
+
+</html>

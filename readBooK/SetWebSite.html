@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta http-equiv="Access-Control-Allow-Origin" content="*">
+		<meta http-equiv="content-security-policy">
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="css/mui.min.css">
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">配置资源网站地址</h1>
+		</header>
+
+		<div class="mui-content">
+			<div class="mui-card">
+				<div class="mui-card-content">
+					<div class="mui-input-row">
+						<h3 style="text-align: center;">使用申明</h3>
+						<p>&nbsp;&nbsp;&nbsp;&nbsp;本软件仅提供爬虫技术支持，具体获取资源取决于用</p>
+						<p>&nbsp;&nbsp;户配置的资源网站，所产生的版权问题将由用户自行承</p>
+						<p>&nbsp;&nbsp;担。本软件概不负责，您使用本软件，即同意本软件使</p>
+						<p>&nbsp;&nbsp;用说明。详细规则请参看“<a href="statement.html">软件申明</a>”。</p>
+					</div>	
+					</div>
+				</div>
+			<div class="mui-card">
+				<div class="mui-card-content">
+				
+					<div class="mui-input-row">
+						<label>配置网址：</label>
+						<input id="setUrl" type="text" class="mui-input-clear" placeholder="配置网址">
+					</div>
+						<div class="mui-input-row">
+							<a style="margin-left: 5px;">&nbsp;*配置说明：网址必须以www.XXX.com 或者XXX.com等格式。后缀名不限.com,.net,.cn等。如果配置网址错误，将不能正确获得资源。</a>		
+					</div>
+				</div>
+			</div>
+			<div class="mui-button-row">
+				<button id="confirmBtn" type="button" class="mui-btn mui-btn-primary" onclick="clickConfirm()">确认</button>&nbsp;&nbsp;
+				<button id="cancleBtn" type="button" class="mui-btn mui-btn-danger" onclick="clickCancle()">取消</button>
+			</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script>
+			mui.init();
+			
+			mui.plusReady(function() {
+				var urlStr=document.getElementById("setUrl");
+				var data=localStorage.getItem("ConfigUrl");
+				console.log(data);
+				if(data==null){
+					urlStr.value="";
+					return;
+				}else if(data==""){
+					urlStr.value="";
+					return;
+				}
+				urlStr.value= data;
+					
+			});
+			//确定
+			function clickConfirm(){
+				var urlStr=document.getElementById("setUrl").value;
+				if(urlStr=="")
+				{
+					mui.toast("配置网址不能为空");
+					return;
+				}
+				localStorage.setItem("ConfigUrl",urlStr);
+				mui.toast("配置成功");
+			}
+			
+			//取消
+			function clickCancle(){
+				var urlStr=document.getElementById("setUrl");
+				urlStr.value="";
+				localStorage.removeItem("ConfigUrl");
+			}
+			
+		</script>
+	</body>
+</html>

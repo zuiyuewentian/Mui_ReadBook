@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta http-equiv="Access-Control-Allow-Origin" content="*">
+		<meta http-equiv="content-security-policy">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">全网搜索</h1>
+		</header>
+		<div class="mui-content" style="margin-top:-15px;width: 100%;">
+			<div class="mui-card" style="left: -10px; width: 100%;">
+				<ul id="ui_SearchNovel" class="mui-table-view ref">
+				</ul>
+			</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script type="text/javascript">
+			mui.init();
+
+			var bookData;
+
+			mui.plusReady(function() {
+				var self = plus.webview.currentWebview();
+				var name = self.keyword;
+
+				loadList(name);
+			});
+
+			/*请求列表数据*/
+			function loadList(name) {
+				var urlStr = encodeURI(name);
+				console.log(urlStr);
+				var setUrl = localStorage.getItem("ConfigUrl");
+				var setUrlStr = "&setUrl=" + setUrl;
+				url = 'http://120.78.209.96:1500/Service/?novelid=0&chapterId=0&state=5&name=' + urlStr + setUrlStr;
+				console.log(url);
+				mui.ajax(url, {
+					dataType: 'json',
+					type: 'get',
+					timeout: 10000,
+					success: function(data) {
+						if(data == null)
+							return;
+						if(data == "")
+							return;
+						console.log(name);
+						var count = Object.keys(data).length;
+						var dataContent = "<li class='mui-table-view-divider'>\"<a>" + name + "</a> \"搜索结果（ 共搜索到 <a> " + count + " </a>条相关数据）</li> "
+						console.log(count);
+						bookData = data;
+						for(i = 0; i < count; i++) {
+							//var imageUrl = data[i].PicUrl;
+							var NovelName = data[i].Name;
+							var Author = data[i].Author;
+							var nUrl = encodeURI(data[i].NovelUrl);
+
+							dataContent += "<li class='mui-table-view-cell '><a onclick='jumpreadText(" + i + ")'><div class='mui-media-body'>" + Number(i + 1) + "." + NovelName + "	<p class='mui-ellipsis '>作者：" + Author + " </p></div></a></li>";
+						}
+						var novelContent = document.getElementById("ui_SearchNovel");
+						novelContent.innerHTML = dataContent;
+					},
+					error: function() {
+						console.log("获取失败");
+					}
+				});
+			}
+
+			//跳转页面
+			function jumpreadText(id) {
+				var webview = mui.openWindow({
+					url: 'BookCard.html',
+					extras: {
+						data: bookData,
+						nid: id //扩展参数
+					}
+				});
+			}
+		</script>
+	</body>
+
+</html>
